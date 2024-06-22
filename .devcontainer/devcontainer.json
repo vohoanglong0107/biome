@@ -1,0 +1,31 @@
+{
+  "name": "Biome",
+	"build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+	"workspaceFolder": "/app", // Don't use /workspace cause biome use some test that depend on the path /workspace
+  "workspaceMount": "source=biome_workspace,target=/app",
+  "runArgs": ["--name", "biome"],
+	"mounts": [
+    {
+      "source": "/run/host-services/ssh-auth.sock",
+      "target": "/run/host-services/ssh-auth.sock",
+      "type": "bind"
+    },
+    {
+      "source": "${localWorkspaceFolderBasename}-target",
+      "target": "/root/.cache/cargo/${localWorkspaceFolderBasename}/target",
+      "type": "volume"
+    }
+  ],
+  "containerEnv": {
+		"SSH_AUTH_SOCK": "/run/host-services/ssh-auth.sock"
+  },
+  "overrideCommand": true,
+  "features": {
+		"ghcr.io/vohoanglong0107/devcontainer-features/preset:latest": {}
+  },
+  "containerUser": "root",
+	"remoteUser": "root"
+}
