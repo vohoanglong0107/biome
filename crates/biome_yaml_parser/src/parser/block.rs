@@ -46,18 +46,18 @@ fn parse_block_scalar(p: &mut YamlParser) -> CompletedMarker {
         }
         _ => {}
     }
-    m.complete(p, YAML_BLOCK_SCALAR)
+    m.complete(p, YAML_LITERAL_SCALAR) // YAML_BLOCK_SCALAR)
 }
 
 fn parse_literal_scalar(p: &mut YamlParser) -> CompletedMarker {
     let m = p.start();
-    p.bump(LITERAL_BLOCK_LITERAL);
+    p.bump(T![|]); // LITERAL_BLOCK_LITERAL);
     m.complete(p, YAML_LITERAL_SCALAR)
 }
 
 fn parse_folded_scalar(p: &mut YamlParser) -> CompletedMarker {
     let m = p.start();
-    p.bump(FOLDED_BLOCK_LITERAL);
+    p.bump(T![>]); // FOLDED_BLOCK_LITERAL);
     m.complete(p, YAML_FOLDED_SCALAR)
 }
 
@@ -286,5 +286,5 @@ fn is_at_explicit_mapping_key(p: &YamlParser) -> bool {
 }
 
 fn is_at_block_scalar(p: &YamlParser) -> bool {
-    p.at(LITERAL_BLOCK_LITERAL) || p.at(FOLDED_BLOCK_LITERAL)
+    p.at(T![|]) || p.at(T![>]) // LITERAL_BLOCK_LITERAL) || p.at(FOLDED_BLOCK_LITERAL)
 }

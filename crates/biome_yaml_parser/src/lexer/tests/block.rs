@@ -457,3 +457,208 @@ c: 30
         MAPPING_END:0,
     );
 }
+
+#[test]
+fn lex_basic_block_scalar() {
+    assert_lex!(
+        r"|
+    hello",
+        PIPE:1,
+        NEWLINE:1,
+        BLOCK_CONTENT_LITERAL:7,
+    );
+
+    assert_lex!(
+        ">",
+        R_ANGLE:1,
+        BLOCK_CONTENT_LITERAL:0,
+    );
+}
+
+#[test]
+fn lex_block_scalar_with_indentation_indicator() {
+    assert_lex!(
+        r"|2
+    content",
+        PIPE:1,
+        INDENTATION_INDICATOR:1,
+        NEWLINE:1,
+        BLOCK_CONTENT_LITERAL:11,
+    );
+}
+
+#[test]
+fn lex_block_scalar_with_chomping_indicator() {
+    assert_lex!(
+        "|+",
+        PIPE:1,
+        PLUS:1,
+        BLOCK_CONTENT_LITERAL:0,
+    );
+
+    assert_lex!(
+        "|-",
+        PIPE:1,
+        DASH:1,
+        BLOCK_CONTENT_LITERAL:0,
+    );
+}
+
+#[test]
+fn lex_block_scalar_with_both_indicators() {
+    assert_lex!(
+        "|2+",
+        PIPE:1,
+        INDENTATION_INDICATOR:1,
+        PLUS:1,
+        BLOCK_CONTENT_LITERAL:0,
+    );
+
+    assert_lex!(
+        "|+2",
+        PIPE:1,
+        PLUS:1,
+        INDENTATION_INDICATOR:1,
+        BLOCK_CONTENT_LITERAL:0,
+    );
+}
+
+#[test]
+fn lex_block_scalar_with_comment() {
+    assert_lex!(
+        "| # comment",
+        PIPE:1,
+        WHITESPACE:1,
+        COMMENT:9,
+        NEWLINE:1,
+        BLOCK_CONTENT_LITERAL:0,
+    );
+
+    assert_lex!(
+        r"|2+     # comment with indicators
+    content",
+        PIPE:1,
+        INDENTATION_INDICATOR:1,
+        PLUS:1,
+        WHITESPACE:1,
+        COMMENT:9,
+        NEWLINE:1,
+        BLOCK_CONTENT_LITERAL:9,
+    );
+}
+
+#[test]
+fn lex_invalid_block_scalar_headers() {
+    assert_lex!(
+        "|0",
+        PIPE:1,
+        INDENTATION_INDICATOR:1,
+        BLOCK_CONTENT_LITERAL:0,
+    );
+
+    assert_lex!(
+        "|12",
+        PIPE:1,
+        INDENTATION_INDICATOR:2,
+        BLOCK_CONTENT_LITERAL:0,
+    );
+
+    assert_lex!(
+        "|12-3+",
+        PIPE:1,
+        INDENTATION_INDICATOR:2,
+        PLUS:1,
+        INDENTATION_INDICATOR:1,
+        DASH:1,
+        BLOCK_CONTENT_LITERAL:0,
+    );
+}
+
+#[test]
+fn lex_block_scalar_with_empty_content() {
+    assert_lex!(
+        r"|
+    ",
+        PIPE:1,
+        NEWLINE:1,
+        BLOCK_CONTENT_LITERAL:0,
+    );
+    assert_lex!(
+        "|\n    \n ",
+        PIPE:1,
+        NEWLINE:1,
+        BLOCK_CONTENT_LITERAL:9,
+    );
+}
+
+#[test]
+fn lex_block_scalar_multiline_content() {
+    assert_lex!(
+        r"|
+  line1
+  line2
+  line3",
+        PIPE:1,
+        NEWLINE:1,
+        BLOCK_CONTENT_LITERAL:21,
+    );
+}
+
+#[test]
+fn lex_block_scalar_with_blank_lines() {
+    assert_lex!(
+        r"|
+  line1
+
+  line2",
+        PIPE:1,
+        NEWLINE:1,
+        BLOCK_CONTENT_LITERAL:15,
+    );
+}
+
+#[test]
+fn lex_block_scalar_indentation_detection() {
+    assert_lex!(
+        r"|
+    content
+    more",
+        PIPE:1,
+        NEWLINE:1,
+        BLOCK_CONTENT_LITERAL:17,
+    );
+}
+
+#[test]
+fn lex_block_scalar_ends_at_less_indented_line() {
+    assert_lex!(
+        r"|
+    content
+  key: value",
+        PIPE:1,
+        NEWLINE:1,
+        BLOCK_CONTENT_LITERAL:9,
+        NEWLINE:1,
+        MAPPING_START:0,
+        PLAIN_LITERAL:3,
+        COLON:1,
+        WHITESPACE:1,
+        FLOW_START:0,
+        PLAIN_LITERAL:5,
+        FLOW_END:0,
+        MAPPING_END:0,
+    );
+}
+
+#[test]
+fn lex_block_scalar_mixed_indentation() {
+    assert_lex!(
+        r"|
+  line1
+    indented
+  line2",
+        PIPE:1,
+        NEWLINE:1,
+        BLOCK_CONTENT_LITERAL:26,
+    );
+}
